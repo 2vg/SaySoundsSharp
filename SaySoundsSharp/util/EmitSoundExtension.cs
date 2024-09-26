@@ -1,9 +1,4 @@
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Core.Attributes.Registration;
-using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Memory.DynamicFunctions;
 
 namespace SaySoundsSharp;
@@ -14,19 +9,116 @@ namespace SaySoundsSharp;
 public static class EmitSoundExtension
 {
     // Search string with "DeathCry" and the function using this argument is EmitSoundParams.
-    private static MemoryFunctionVoid<CBaseEntity, string, int, float, float> CBaseEntity_EmitSoundParamsFunc = new("48 8B C4 48 89 58 10 48 89 70 18 55 57 41 56 48 8D A8 08");
-    private static MemoryFunctionWithReturn<nint, nint, uint, uint, short, ulong, ulong> CSoundOpGameSystem_StartSoundEventFunc = new("40 57 41 54 41 55 41 56 41 57 48 81");
-    private static MemoryFunctionVoid<nint, nint, ulong, nint, nint, short, byte> CSoundOpGameSystem_SetSoundEventParamFunc = new("48 89 5C 24 08 48 89 6C 24 10 56 57 41 56 48 83 EC 40 41");
+    // Windows
+    // private static MemoryFunctionVoid<CBaseEntity, string, int, float, float> CBaseEntity_EmitSoundParamsFunc = new("48 8B C4 48 89 58 10 48 89 70 18 55 57 41 56 48 8D A8 08 FF FF FF");
+    // Linux
+    private static MemoryFunctionVoid<CBaseEntity, string, int, float, float> CBaseEntity_EmitSoundParamsFunc = new("48 B8 ? ? ? ? ? ? ? ? 55 48 89 E5 41 55 41 54 49 89 FC 53 48 89 F3");
 
-    internal static void Init()
+    // Windows
+    // private static MemoryFunctionVoid<RecipientFilter, uint, EmitSound_t> CBaseEntity_EmitSoundFilterFunc = new("48 89 5C 24 08 48 89 6C 24 10 48 89 74 24 18 48 89 7C 24 20 41 56 48 83 EC 30 48 8B EA")
+    // Linux
+    // private static MemoryFunctionVoid<RecipientFilter, uint, EmitSound_t> CBaseEntity_EmitSoundFilterFunc = new("55 48 89 E5 41 56 49 89 D6 41 55 41 89 F5 41 54 48 8D 35 ? ? ? ?");
+
+    /*
+     * Thanks oylsister: https://discord.com/channels/1160907911501991946/1173099041735835719/1285969901970002032
+     */
+    /*
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct SndOpEventGuid_t
     {
-        CSoundOpGameSystem_StartSoundEventFunc.Hook( CSoundOpGameSystem_StartSoundEventFunc_PostHook, HookMode.Post );
+        public uint m_nGuid;
+        public ulong m_hStackHash;
     }
 
-    internal static void CleanUp()
+    [StructLayout(LayoutKind.Sequential)]
+    public struct EmitSound_t
     {
-        CSoundOpGameSystem_StartSoundEventFunc.Unhook( CSoundOpGameSystem_StartSoundEventFunc_PostHook, HookMode.Post );
+        public EmitSound_t()
+        {
+            Channel = 0;
+            SoundName = "";
+            Volume = 1f;
+            SoundLevel = soundlevel_t.SNDLVL_NONE;
+            Flags = 0;
+            Pitch = 100;
+            Origin = new();
+            SoundTime = 0;
+            SoundDuration = 0;
+            EmitCloseCaption = true;
+            WarnOnMissingCloseCaption = false;
+            WarnOnDirectWaveReference = false;
+            SpeakerEntity = 0;
+            UtlVecSoundOrigin = new();
+            ForceGuid = 0;
+            SpeakerGender = gender_t.GENDER_NONE;
+        }
+
+        public int Channel;
+        public string SoundName; // Note: Pointer to a C-style string (const char*)
+        public float Volume;
+        public soundlevel_t SoundLevel; // Assuming soundlevel_t is an enum or similar
+        public int Flags;
+        public int Pitch;
+        public Vector Origin; // Pointer to a Vector (assuming Vector is another struct)
+        public float SoundTime;
+        public float SoundDuration; // Pointer to a float (duration)
+        public bool EmitCloseCaption;
+        public bool WarnOnMissingCloseCaption;
+        public bool WarnOnDirectWaveReference;
+        public uint SpeakerEntity;
+        public CUtlVector UtlVecSoundOrigin;
+        public uint ForceGuid;
+        public gender_t SpeakerGender;
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CUtlMemory
+    {
+        public unsafe nint* m_pMemory;
+        public int m_nAllocationCount;
+        public int m_nGrowSize;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CUtlVector
+    {
+        public unsafe nint this[int index]
+        {
+            get => m_Memory.m_pMemory[index];
+            set => m_Memory.m_pMemory[index] = value;
+        }
+
+        public int m_iSize;
+        public CUtlMemory m_Memory;
+
+        public nint Element(int index) => this[index];
+    }
+
+    public enum gender_t : ushort
+    {
+        GENDER_NONE = 0x0,
+        GENDER_MALE = 0x1,
+        GENDER_FEMALE = 0x2,
+        GENDER_NAMVET = 0x3,
+        GENDER_TEENGIRL = 0x4,
+        GENDER_BIKER = 0x5,
+        GENDER_MANAGER = 0x6,
+        GENDER_GAMBLER = 0x7,
+        GENDER_PRODUCER = 0x8,
+        GENDER_COACH = 0x9,
+        GENDER_MECHANIC = 0xA,
+        GENDER_CEDA = 0xB,
+        GENDER_CRAWLER = 0xC,
+        GENDER_UNDISTRACTABLE = 0xD,
+        GENDER_FALLEN = 0xE,
+        GENDER_RIOT_CONTROL = 0xF,
+        GENDER_CLOWN = 0x10,
+        GENDER_JIMMY = 0x11,
+        GENDER_HOSPITAL_PATIENT = 0x12,
+        GENDER_BRIDE = 0x13,
+        GENDER_LAST = 0x14,
+    };
+    */
 
     [ThreadStatic]
     private static IReadOnlyDictionary<string, float>? CurrentParameters;
@@ -35,11 +127,11 @@ public static class EmitSoundExtension
     /// Emit a sound event by name (e.g., "Weapon_AK47.Single").
     /// TODO: parameters passed in here only seem to work for sound events shipped with the game, not workshop ones.
     /// </summary>
-    public static void EmitSound( this CBaseEntity entity, string soundName, IReadOnlyDictionary<string, float>? parameters = null )
+    public static void EmitSound(this CBaseEntity entity, string soundName, IReadOnlyDictionary<string, float>? parameters = null)
     {
-        if ( !entity.IsValid )
+        if (!entity.IsValid)
         {
-            throw new ArgumentException( "Entity is not valid." );
+            throw new ArgumentException("Entity is not valid.");
         }
 
         try
@@ -51,7 +143,7 @@ public static class EmitSoundExtension
             CurrentParameters = parameters;
 
             // Pitch, volume etc aren't actually used here
-            CBaseEntity_EmitSoundParamsFunc.Invoke( entity, soundName, 100, 1f, 0f );
+            CBaseEntity_EmitSoundParamsFunc.Invoke(entity, soundName, 100, 1f, 0f);
         }
         finally
         {
@@ -59,64 +151,87 @@ public static class EmitSoundExtension
         }
     }
 
-    private static HookResult CSoundOpGameSystem_StartSoundEventFunc_PostHook( DynamicHook hook )
+    public static void EmitSoundWithPitch(this CBaseEntity entity, string soundName, int pitch = 100)
     {
-        if ( CurrentParameters is not { Count: > 0 } )
+        if (!entity.IsValid)
         {
-            return HookResult.Continue;
+            throw new ArgumentException("Entity is not valid.");
         }
 
-        var pSoundOpGameSystem = hook.GetParam<nint>( 0 );
-        var pFilter = hook.GetParam<nint>( 1 );
-        var soundEventId = hook.GetReturn<ulong>();
-
-        foreach ( var parameter in CurrentParameters )
+        if (pitch != 100)
         {
-            CSoundOpGameSystem_SetSoundEventParam( pSoundOpGameSystem, pFilter,
-                soundEventId, parameter.Key, parameter.Value );
+            soundName += $".p{pitch}";
+        };
+
+        try
+        {
+            Console.WriteLine($"[SaySoundsSharp] played {soundName}");
+            CBaseEntity_EmitSoundParamsFunc.Invoke(entity, soundName, 100, 1f, 0f);
         }
-
-        return HookResult.Continue;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private readonly struct FloatParamData
-    {
-        // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
-        private readonly uint _type1;
-        private readonly uint _type2;
-
-        private readonly uint _size1;
-        private readonly uint _size2;
-
-        private readonly float _value;
-        private readonly uint _padding;
-        // ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
-
-        public FloatParamData( float value )
+        finally
         {
-            _type1 = 1;
-            _type2 = 8;
-
-            _size1 = 4;
-            _size2 = 4;
-
-            _value = value;
-            _padding = 0;
+            CurrentParameters = null;
         }
     }
 
-    private static unsafe void CSoundOpGameSystem_SetSoundEventParam( nint pSoundOpGameSystem, nint pFilter,
-        ulong soundEventId, string paramName, float value )
+    /*
+    public static void EmitSoundFilter(this CCSPlayerController client, string soundName, int nPitch = 100, float flVolume = 1.0f)
     {
-        var data = new FloatParamData( value );
-        var nameByteCount = Encoding.UTF8.GetByteCount( paramName );
+        if (!client.IsValid)
+        {
+            throw new ArgumentException("Entity is not valid.");
+        }
 
-        var pData = Unsafe.AsPointer( ref data );
-        var pName = stackalloc byte[nameByteCount + 1];
+        var filter = new RecipientFilter
+        {
+            client.Slot
+        };
+        var soundParams = new EmitSound_t
+        {
+            SoundName = soundName,
+            Pitch = nPitch,
+            Volume = flVolume
+        };
 
-        Encoding.UTF8.GetBytes( paramName, new Span<byte>( pName, nameByteCount ) );
-
-        CSoundOpGameSystem_SetSoundEventParamFunc.Invoke( pSoundOpGameSystem, pFilter, soundEventId, (nint)pName, (nint)pData, 0, 0 );
+        try
+        {
+            CBaseEntity_EmitSoundFilterFunc.Invoke(filter, client.Index, soundParams);
+        }
+        catch (Exception ex)
+        {
+            throw new ArgumentException($"Failed to call EmitSoundFilter. error: {ex}");
+        }
     }
+
+    public static void EmitSoundToAll(this CCSPlayerController client, string soundName, int nPitch = 100, float flVolume = 1.0f)
+    {
+        if (!client.IsValid)
+        {
+            throw new ArgumentException("Entity is not valid.");
+        }
+
+        var filter = new RecipientFilter();
+        foreach (CCSPlayerController cl in Utilities.GetPlayers())
+        {
+            if (!cl.IsValid || cl.IsBot || cl.IsHLTV)
+                continue;
+            filter.Add(cl.Slot);
+        }
+        var soundParams = new EmitSound_t
+        {
+            SoundName = soundName,
+            Pitch = nPitch,
+            Volume = flVolume
+        };
+
+        try
+        {
+            CBaseEntity_EmitSoundFilterFunc.Invoke(filter, client.Index, soundParams);
+        }
+        catch (Exception ex)
+        {
+            throw new ArgumentException($"Failed to call EmitSoundFilter. error: {ex}");
+        }
+    }
+    */
 }

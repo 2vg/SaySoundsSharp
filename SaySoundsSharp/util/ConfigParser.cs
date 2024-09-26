@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using CounterStrikeSharp.API;
 
 namespace SaySoundsSharp;
 
