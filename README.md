@@ -55,11 +55,3 @@ The script has settings for each path, so edit it according to your environment.
 `counter-strike global offensive/content/csgo_addons` is the path of the workshop add-on you created, but if `vsnd` and `vsndevts` have been successfully compiled, the path of `counter-strike global offensive/game/csgo_addons` There should be `vsnd_c` and `vsndevts_c` files within the add-on in your path.
 
 If for some reason `vsndevts` does not compile, you will need to manually investigate the error using the resource compiler.
-
-## How to implement without `EmitSoundFilter`
-
-When defining `vsndevts`, specifying the sound type as `csgo_music` will treat the sound like map music.
-
-Apparently, if you emit map music, it will be played to everyone.
-
-Also, by combining this with `volume_convar = "snd_menumusic_volume`, the main menu volume and the sound volume of SaySounds will be synchronized, and you will be able to adjust the volume yourself.

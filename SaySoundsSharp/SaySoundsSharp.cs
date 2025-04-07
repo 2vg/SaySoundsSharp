@@ -2,6 +2,7 @@
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Cvars;
+using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Utils;
 
 namespace SaySoundsSharp;
@@ -51,7 +52,7 @@ public class SaySoundsSharp : BasePlugin
 
         playSaySound(client, saySound, sound);
 
-        printSaySoundNotification(client, saySound.soundName);
+        printSaySoundNotification(client, saySound);
         return HookResult.Handled;
     }
 
@@ -70,7 +71,7 @@ public class SaySoundsSharp : BasePlugin
 
         playSaySound(client, saySound, sound);
 
-        printSaySoundNotification(client, saySound.soundName);
+        printSaySoundNotification(client, saySound);
         return HookResult.Handled;
     }
 
@@ -117,20 +118,31 @@ public class SaySoundsSharp : BasePlugin
 
     }
 
-    // currently, support only EmitSoundWithPitch
+    // TODO: volume, pitch?
     private void playSaySound(CCSPlayerController client, UserSaySoundInput saySound, string soundName)
     {
-        client.EmitSoundWithPitch(soundName, saySound.pitch);
+        if (saySound.pitch != 100)
+        {
+            soundName += $".p{saySound.pitch}";
+        };
+
+        foreach (CCSPlayerController cl in Utilities.GetPlayers())
+        {
+            if (!cl.IsValid || cl.IsBot || cl.IsHLTV)
+                continue;
+            RecipientFilter filter = [cl];
+            client.EmitSound(soundName, filter);
+        }
     }
 
-    private void printSaySoundNotification(CCSPlayerController client, string soundName)
+    private void printSaySoundNotification(CCSPlayerController client, UserSaySoundInput ss)
     {
         foreach (CCSPlayerController cl in Utilities.GetPlayers())
         {
             if (!cl.IsValid || cl.IsBot || cl.IsHLTV)
                 continue;
 
-            cl.PrintToChat(" " + saySoundMessageFormat.Replace("%player%", $"{ChatColors.LightPurple}{client.PlayerName}{ChatColors.Default}").Replace("%soundname%", $"{ChatColors.Lime}{soundName}{ChatColors.Default}"));
+            cl.PrintToChat(" " + saySoundMessageFormat.Replace("%player%", $"{ChatColors.LightPurple}{client.PlayerName}{ChatColors.Default}").Replace("%soundname%", $"{ChatColors.Lime}{ss.soundName}{ChatColors.Default}@{ChatColors.Red}{ss.pitch}{ChatColors.Default}"));
         }
     }
 }

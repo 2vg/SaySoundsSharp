@@ -16,7 +16,7 @@ public static class SaySoundUtil
 
             if (args.Length > 1 && int.TryParse(args[1], out pitch))
             {
-                int[] validPitches = { 25, 50, 75, 125, 150, 175, 200, 225 };
+                int[] validPitches = Enumerable.Range(0, 16).Select(i => 50 + i * 10).ToArray();
                 if (pitch != 100 && !validPitches.Contains(pitch))
                 {
                     pitch = 100;
